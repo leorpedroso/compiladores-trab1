@@ -1,10 +1,19 @@
+ /*
+  Leonardo Rodrigues Pedroso
+  265001
+ */
+
 int num_lines = 0;
+ 
+%x comment
 
 %{
   #include "tokens.h"
 %}
 
 %%
+  int line_num = 1;
+
 char    {printf("%d\n", KW_CHAR);}
 int     {printf("%d\n", KW_INT);}
 float   {printf("%d\n", KW_FLOAT);}
@@ -17,7 +26,9 @@ read    {printf("%d\n", KW_READ);}
 print   {printf("%d\n", KW_PRINT);}
 return  {printf("%d\n", KW_RETURN);}
 
+
 [,;:()[\]{}+*/<>=-]       {printf("%d\n",yytext[0]);}
+
 
 "<="    {printf("%d\n", OPERATOR_LE);}
 ">="    {printf("%d\n", OPERATOR_GE);}
@@ -34,11 +45,23 @@ return  {printf("%d\n", KW_RETURN);}
     
     TODO: ver com o sor sobre quebra de linha 
   */
+\"(\\[^\n]|[^\\"\n])*\" {printf("string literal\n");} 
 
-\"(\\[^\n]|[^\\"\n])*\" {printf("string literal");} 
+^"\\\\".*       {printf("comentario 1 linha\n");}
+
+ /* https://www.cs.virginia.edu/~cr4bd/flex-manual/Start-Conditions.html */
+"\\*"                   BEGIN(comment);
+<comment>[^*\n]*        /* eat anything that's not a '*' */
+<comment>"*"+[^*\\\n]*  /* eat up '*'s not followed by '/'s */
+<comment>\n             ++line_num;
+<comment>"*"+"\\"       {printf("multi line comment\n");
+                        BEGIN(INITIAL);}
+
+  /* ^"\\*"(\n|.)*"*\\"$  {printf("comentario multi linha\n");} */
 
 [ \n\t] {}
-.       {printf("char invalido\n");}
+
+.       {printf("%d - %s\n", TOKEN_ERROR, yytext);}
 
 %%
 int getLineNumber(void){}
