@@ -28,7 +28,9 @@ return  {printf("%d\n", KW_RETURN);}
 
 '[ -~]'           {printf("character literal\n");}
 [0-9]+            {printf("integer literal\n");} 
-\"[ -~]{-}[\"]*\" {printf("string literal\n");} 
+
+\"(\\[^\n]|[^\\"\n])*\" {//ver com o johann sobre quebra de linha
+                    printf("string literal");} 
 
 [ \n\t] {}
 .       {printf("char invalido\n");}
