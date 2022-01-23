@@ -3,8 +3,8 @@ int num_lines = 0;
 %{
   #include "tokens.h"
 %}
-%%
 
+%%
 char    {printf("%d\n", KW_CHAR);}
 int     {printf("%d\n", KW_INT);}
 float   {printf("%d\n", KW_FLOAT);}
@@ -18,9 +18,15 @@ print   {printf("%d\n", KW_PRINT);}
 return  {printf("%d\n", KW_RETURN);}
 
 [,;:()[\]{}+*/<>=-]       {printf("%d\n",yytext[0]);}
+
+"<="    {printf("%d\n", OPERATOR_LE);}
+">="    {printf("%d\n", OPERATOR_GE);}
+"=="    {printf("%d\n", OPERATOR_EQ);}
+"!="    {printf("%d\n", OPERATOR_DIF);}
+
 "//"
 0*      {printf("Seq aba\n");}
-[a-z]+  {printf("identificador");}
+[a-z]+  {printf("identificador\n");}
 [ \n\t] {}
 .       {printf("char invalido\n");}
 
