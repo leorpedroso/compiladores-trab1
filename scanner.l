@@ -1,21 +1,23 @@
+int num_lines = 0;
 
-
+%{
+  #include "tokens.h"
+%}
 %%
 
-char    {printf("KW_CHAR");}
-int     {printf("KW_INT");}
-float   {printf("KW float");}
-if      {printf("KW if");}
-then    {printf("KW then");}
-else    {printf("KW else");}
-while   {printf("KW while");}
-goto    {printf("KW goto");}
-read    {printf("KW read");}
-print   {printf("KW print");}
-return  {printf("KW return");}
+char    {printf("%d\n", KW_CHAR);}
+int     {printf("%d\n", KW_INT);}
+float   {printf("%d\n", KW_FLOAT);}
+if      {printf("%d\n", KW_IF);}
+then    {printf("%d\n", KW_THEN);}
+else    {printf("%d\n", KW_ELSE);}
+while   {printf("%d\n", KW_WHILE);}
+goto    {printf("%d\n", KW_GOTO);}
+read    {printf("%d\n", KW_READ);}
+print   {printf("%d\n", KW_PRINT);}
+return  {printf("%d\n", KW_RETURN);}
 
 [,;:()[\]{}+*/<>=-]       {printf("%d\n",yytext[0]);}
-
 "//"
 0*      {printf("Seq aba\n");}
 [a-z]+  {printf("identificador");}
@@ -23,21 +25,6 @@ return  {printf("KW return");}
 .       {printf("char invalido\n");}
 
 %%
-#include "tokens.h"
-
-
-int getToken(char* token) {
-  // chinelagem
-  int tokenCode;
-
-  if (token == "char")
-    tokenCode = KW_CHAR;
-  else if (token == "int")
-    tokenCode = KW_INT;
-
-  return tokenCode; 
-}
-
 int getLineNumber(void){}
 
 int main()

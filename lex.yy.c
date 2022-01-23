@@ -470,7 +470,10 @@ int yy_flex_debug = 0;
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
 #line 1 "scanner.l"
-#line 474 "lex.yy.c"
+#line 4 "scanner.l"
+  #include "tokens.h"
+#line 476 "lex.yy.c"
+#line 477 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -687,10 +690,10 @@ YY_DECL
 		}
 
 	{
-#line 3 "scanner.l"
+#line 6 "scanner.l"
 
 
-#line 694 "lex.yy.c"
+#line 697 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -749,96 +752,96 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 5 "scanner.l"
-{printf("KW_CHAR");}
+#line 8 "scanner.l"
+{printf("%d\n", KW_CHAR);}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 6 "scanner.l"
-{printf("KW_INT");}
+#line 9 "scanner.l"
+{printf("%d\n", KW_INT);}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 7 "scanner.l"
-{printf("KW float");}
+#line 10 "scanner.l"
+{printf("%d\n", KW_FLOAT);}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 8 "scanner.l"
-{printf("KW if");}
+#line 11 "scanner.l"
+{printf("%d\n", KW_IF);}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 9 "scanner.l"
-{printf("KW then");}
+#line 12 "scanner.l"
+{printf("%d\n", KW_THEN);}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 10 "scanner.l"
-{printf("KW else");}
+#line 13 "scanner.l"
+{printf("%d\n", KW_ELSE);}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 11 "scanner.l"
-{printf("KW while");}
+#line 14 "scanner.l"
+{printf("%d\n", KW_WHILE);}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 12 "scanner.l"
-{printf("KW goto");}
+#line 15 "scanner.l"
+{printf("%d\n", KW_GOTO);}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 13 "scanner.l"
-{printf("KW read");}
+#line 16 "scanner.l"
+{printf("%d\n", KW_READ);}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 14 "scanner.l"
-{printf("KW print");}
+#line 17 "scanner.l"
+{printf("%d\n", KW_PRINT);}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 15 "scanner.l"
-{printf("KW return");}
+#line 18 "scanner.l"
+{printf("%d\n", KW_RETURN);}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 17 "scanner.l"
+#line 20 "scanner.l"
 {printf("%d\n",yytext[0]);}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 19 "scanner.l"
+#line 21 "scanner.l"
 
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 20 "scanner.l"
+#line 22 "scanner.l"
 {printf("Seq aba\n");}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 21 "scanner.l"
+#line 23 "scanner.l"
 {printf("identificador");}
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 22 "scanner.l"
+#line 24 "scanner.l"
 {}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 23 "scanner.l"
+#line 25 "scanner.l"
 {printf("char invalido\n");}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 25 "scanner.l"
+#line 27 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 842 "lex.yy.c"
+#line 845 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1843,22 +1846,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 25 "scanner.l"
-
-#include "tokens.h"
-
-
-int getToken(char* token) {
-  // chinelagem
-  int tokenCode;
-
-  if (token == "char")
-    tokenCode = KW_CHAR;
-  else if (token == "int")
-    tokenCode = KW_INT;
-
-  return tokenCode; 
-}
+#line 27 "scanner.l"
 
 int getLineNumber(void){}
 
