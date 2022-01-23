@@ -29,8 +29,13 @@ return  {printf("%d\n", KW_RETURN);}
 '[ -~]'           {printf("character literal\n");}
 [0-9]+            {printf("integer literal\n");} 
 
-\"(\\[^\n]|[^\\"\n])*\" {//ver com o johann sobre quebra de linha
-                    printf("string literal");} 
+ /* https://stackoverflow.com/a/2039820 
+    alterado para falhar em quebra de linha 
+    
+    TODO: ver com o sor sobre quebra de linha 
+  */
+
+\"(\\[^\n]|[^\\"\n])*\" {printf("string literal");} 
 
 [ \n\t] {}
 .       {printf("char invalido\n");}
