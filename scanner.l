@@ -2,8 +2,6 @@
   Leonardo Rodrigues Pedroso
   265001
  */
-
-int num_lines = 0;
  
 %x comment
 
@@ -45,7 +43,7 @@ return  {printf("%d\n", KW_RETURN);}
     
     TODO: ver com o sor sobre quebra de linha 
   */
-\"(\\[^\n]|[^\\"\n])*\" {printf("string literal\n");} 
+\"(\\[^\n]|[^\\"\n])*\" {printf("string literal\n");}
 
 ^"\\\\".*       {printf("comentario 1 linha\n");}
 
@@ -61,15 +59,12 @@ return  {printf("%d\n", KW_RETURN);}
 
 [ \n\t] {}
 
-.       {printf("%d - %s\n", TOKEN_ERROR, yytext);}
+.       {printf("%d\n", TOKEN_ERROR, yytext);}
 
 %%
-int getLineNumber(void){}
+#include "main.c"
 
-int main()
-{
-  yylex();
-}
+int getLineNumber(void){}
 
 int yywrap()
 {
