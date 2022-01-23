@@ -24,9 +24,8 @@ return  {printf("%d\n", KW_RETURN);}
 "=="    {printf("%d\n", OPERATOR_EQ);}
 "!="    {printf("%d\n", OPERATOR_DIF);}
 
-"//"
-0*      {printf("Seq aba\n");}
-[a-z]+  {printf("identificador\n");}
+[a-z_\-]+  {printf("identificador\n");}
+
 [ \n\t] {}
 .       {printf("char invalido\n");}
 
