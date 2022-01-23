@@ -59,7 +59,7 @@ return  {printf("%d\n", KW_RETURN);}
 
 [ \n\t] {}
 
-.       {printf("%d\n", TOKEN_ERROR, yytext);}
+.       {printf("%d\n", TOKEN_ERROR);}
 
 %%
 #include "main.c"
