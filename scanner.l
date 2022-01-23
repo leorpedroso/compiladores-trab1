@@ -24,9 +24,11 @@ return  {printf("%d\n", KW_RETURN);}
 "=="    {printf("%d\n", OPERATOR_EQ);}
 "!="    {printf("%d\n", OPERATOR_DIF);}
 
-[a-z_-]+  {printf("identificador\n");}
+[a-z_-]+          {printf("identificador\n");}
 
-'[ -~]' {printf("literal caractere\n");}
+'[ -~]'           {printf("character literal\n");}
+[0-9]+            {printf("integer literal\n");} 
+\"[ -~]{-}[\"]*\" {printf("string literal\n");} 
 
 [ \n\t] {}
 .       {printf("char invalido\n");}
