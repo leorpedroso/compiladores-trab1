@@ -14,26 +14,26 @@
 
 %%
 
-char    {printf("%d\n", KW_CHAR);}
-int     {printf("%d\n", KW_INT);}
-float   {printf("%d\n", KW_FLOAT);}
-if      {printf("%d\n", KW_IF);}
-then    {printf("%d\n", KW_THEN);}
-else    {printf("%d\n", KW_ELSE);}
-while   {printf("%d\n", KW_WHILE);}
-goto    {printf("%d\n", KW_GOTO);}
-read    {printf("%d\n", KW_READ);}
-print   {printf("%d\n", KW_PRINT);}
-return  {printf("%d\n", KW_RETURN);}
+char    {return KW_CHAR;}
+int     {return KW_INT;}
+float   {return KW_FLOAT;}
+if      {return KW_IF;}
+then    {return KW_THEN;}
+else    {return KW_ELSE;}
+while   {return KW_WHILE;}
+goto    {return KW_GOTO;}
+read    {return KW_READ;}
+print   {return KW_PRINT;}
+return  {return KW_RETURN;}
 
 
-[,;:()[\]{}+*/<>=-]       {printf("%d\n",yytext[0]);}
+[,;:()[\]{}+*/<>=-]       {return yytext[0];}
 
 
-"<="    {printf("%d\n", OPERATOR_LE);}
-">="    {printf("%d\n", OPERATOR_GE);}
-"=="    {printf("%d\n", OPERATOR_EQ);}
-"!="    {printf("%d\n", OPERATOR_DIF);}
+"<="    {return OPERATOR_LE;}
+">="    {return OPERATOR_GE;}
+"=="    {return OPERATOR_EQ;}
+"!="    {return OPERATOR_DIF;}
 
 [a-z_-]+          {printf("identificador\n");}
 
@@ -62,13 +62,30 @@ return  {printf("%d\n", KW_RETURN);}
 \n    ++line_num;
 [ \t] {}
 
+<<EOF>>     {running = 0;
+            return -1;}
 
-.       {printf("%d\n", TOKEN_ERROR);}
+.       {return TOKEN_ERROR;}
 
 %%
-#include "main.c"
+// #include "main.c"
 int getLineNumber(void){
   return line_num;
+}
+
+void initMe(void);
+
+int isRunning(void){
+  return running;
+}
+
+int main()
+{
+  while (isRunning()){
+    int token = yylex();
+    printf("token : %d\n", token);
+  }
+  printf("Lines: %d", getLineNumber());
 }
 
 int yywrap()
