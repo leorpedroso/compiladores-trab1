@@ -9,8 +9,10 @@
   #include "tokens.h"
 %}
 
+  int line_num = 0;
+  int running = 1;
+
 %%
-  int line_num = 1;
 
 char    {printf("%d\n", KW_CHAR);}
 int     {printf("%d\n", KW_INT);}
@@ -57,17 +59,21 @@ return  {printf("%d\n", KW_RETURN);}
 
   /* ^"\\*"(\n|.)*"*\\"$  {printf("comentario multi linha\n");} */
 
-[ \n\t] {}
+\n    ++line_num;
+[ \t] {}
+
 
 .       {printf("%d\n", TOKEN_ERROR);}
 
 %%
 #include "main.c"
-
-int getLineNumber(void){}
+int getLineNumber(void){
+  return line_num;
+}
 
 int yywrap()
 {
+  
   return 1;
 }
 
