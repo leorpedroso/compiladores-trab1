@@ -6,11 +6,16 @@ int yylex();
 extern char *yytext;
 extern FILE *yyin;
 
-
-int isRunning(void);
-void initMe(void);
-
-int main(int argc, char** argv)
+int main()
 {
-  yylex();
+  initMe();
+  while (isRunning()){
+    int token = yylex();
+    if (token == -1)
+      break;
+    printf("token : %d\n", token);
+  }
+
+  printf("Lines: %d\n", getLineNumber());
+  hashPrint();
 }

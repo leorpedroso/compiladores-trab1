@@ -7,10 +7,11 @@
 
 %{
   #include "tokens.h"
+  #include "hash.h"
+  int line_num = 1;
+  int running = 1;
 %}
 
-  int line_num = 0;
-  int running = 1;
 
 %%
 
@@ -35,21 +36,26 @@ return  {return KW_RETURN;}
 "=="    {return OPERATOR_EQ;}
 "!="    {return OPERATOR_DIF;}
 
-[a-z_-]+          {printf("identificador\n");}
+[a-z_-]+          {hashInsert(yytext, TK_IDENTIFIER);
+                  return TK_IDENTIFIER;}
 
-'[ -~]'           {printf("character literal\n");}
-[0-9]+            {printf("integer literal\n");} 
+'[ -~]'           {hashInsert(yytext, LIT_CHAR);
+                  return LIT_CHAR;}
+
+[0-9]+            {hashInsert(yytext, LIT_INTEGER);
+                  return LIT_INTEGER;} 
 
  /* https://stackoverflow.com/a/2039820 
     alterado para falhar em quebra de linha 
-    
-    TODO: ver com o sor sobre quebra de linha 
   */
-\"(\\[^\n]|[^\\"\n])*\" {printf("string literal\n");}
+\"(\\[^\n]|[^\\"\n])*\" {hashInsert(yytext, LIT_STRING);
+                        return LIT_STRING;}
 
 ^"\\\\".*       {printf("comentario 1 linha\n");}
 
- /* https://www.cs.virginia.edu/~cr4bd/flex-manual/Start-Conditions.html */
+ /* https://www.cs.virginia.edu/~cr4bd/flex-manual/Start-Conditions.html 
+    https://www.cs.virginia.edu/~cr4bd/flex-manual/How-can-I-match-C_002dstyle-comments_003f.html#How-can-I-match-C_002dstyle-comments_003f
+  */
 "\\*"                   BEGIN(comment);
 <comment>[^*\n]*        /* eat anything that's not a '*' */
 <comment>"*"+[^*\\\n]*  /* eat up '*'s not followed by '/'s */
@@ -68,29 +74,27 @@ return  {return KW_RETURN;}
 .       {return TOKEN_ERROR;}
 
 %%
-// #include "main.c"
-int getLineNumber(void){
+#include "hash.c"
+
+void initMe(void)
+{
+  hashInit();
+}
+
+int isRunning(void)
+{
+  return running;
+}
+int getLineNumber(void)
+{
   return line_num;
 }
 
-void initMe(void);
-
-int isRunning(void){
-  return running;
-}
-
-int main()
-{
-  while (isRunning()){
-    int token = yylex();
-    printf("token : %d\n", token);
-  }
-  printf("Lines: %d", getLineNumber());
-}
+#include "main.c"
 
 int yywrap()
 {
-  
+  running = 0;
   return 1;
 }
 
