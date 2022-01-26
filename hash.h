@@ -2,7 +2,7 @@
   Leonardo Rodrigues Pedroso
   265001
 
-  implementacao hash copiada da aula
+  implementacao hash copiada da aula com pequenas alteracoes
  */
 
 #ifndef HASH_HEADER
@@ -22,7 +22,7 @@ typedef struct hash_node
 void hashInit();
 int hashAddress(char *text);
 HASH_NODE* hashFind(char *text);
-HASH_NODE* hashInsert(char *text, int type);
+void hashInsert(char *text, int type);
 void hashPrint();
 
 #endif

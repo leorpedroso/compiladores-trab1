@@ -11,7 +11,7 @@ int main()
   initMe();
   while (isRunning()){
     int token = yylex();
-    if (token == -1)
+    if (token == -1)  //<<EOF>> returns -1
       break;
     printf("token : %d\n", token);
   }
