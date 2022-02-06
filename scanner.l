@@ -8,7 +8,7 @@
 %{
   #include "tokens.h"
   #include "hash.h"
-  int line_num = 1;
+  int line_num = 0;
   int running = 1;
 %}
 
@@ -51,7 +51,7 @@ return  {return KW_RETURN;}
 \"(\\[^\n]|[^\\"\n])*\" {hashInsert(yytext, LIT_STRING);
                         return LIT_STRING;}
 
-^"\\\\".*       {printf("comentario 1 linha\n");}
+^"\\\\".*       {}
 
  /* https://www.cs.virginia.edu/~cr4bd/flex-manual/Start-Conditions.html 
     https://www.cs.virginia.edu/~cr4bd/flex-manual/How-can-I-match-C_002dstyle-comments_003f.html#How-can-I-match-C_002dstyle-comments_003f
@@ -60,8 +60,7 @@ return  {return KW_RETURN;}
 <comment>[^*\n]*        /* eat anything that's not a '*' */
 <comment>"*"+[^*\\\n]*  /* eat up '*'s not followed by '/'s */
 <comment>\n             ++line_num;
-<comment>"*"+"\\"       {printf("multi line comment\n");
-                        BEGIN(INITIAL);}
+<comment>"*"+"\\"       BEGIN(INITIAL);
 
   /* ^"\\*"(\n|.)*"*\\"$  {printf("comentario multi linha\n");} */
 
@@ -97,5 +96,3 @@ int yywrap()
   running = 0;
   return 1;
 }
-
-
