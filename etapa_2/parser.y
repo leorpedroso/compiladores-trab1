@@ -3,6 +3,10 @@
   265001
  */
 
+%{
+  int yyerror();
+%}
+
 %token KW_CHAR           
 %token KW_INT            
 %token KW_FLOAT          
@@ -51,7 +55,7 @@ dec : KW_CHAR TK_IDENTIFIER ':' LIT_CHAR ';'
 /* declaracao de vetores */
 dec_vector : KW_INT TK_IDENTIFIER '[' LIT_INTEGER ']' vec_init
   | KW_CHAR TK_IDENTIFIER '[' LIT_INTEGER ']' vec_init
-  | KW_FLOAT TK_IDENTIFIER '[' LIT_INTEGER ']' ';'
+  | KW_FLOAT TK_IDENTIFIER '[' LIT_INTEGER ']' vec_init
   ;
 
 /* um vetor pode ser inicializado ou nao */
@@ -179,7 +183,7 @@ flow_control : KW_IF expr KW_THEN cmd
 
 int yyerror()
 {
-  fprintf(stderr, "Syntax error at line %d.\n", getLineNumber());
+  fprintf(stderr, "Syntax error at line %d.\n", getLineNumber()+1);
   exit(3);
 }
 
