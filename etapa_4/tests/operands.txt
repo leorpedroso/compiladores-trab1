@@ -1,0 +1,32 @@
+int a: 20;
+int b: 'c';
+float c[10]: 1 2 3 4;
+int i:1;
+
+float main() 
+{
+	a = 5;
+	b = 777 ;
+	c['3'] = 99 / (b > a*5000) ;
+	
+	a = 1 < 2 < 3;
+	
+	a = 1 != (2 - 3);
+	while i==10
+	{
+	    i = incn(i,1);
+		a = incn(a,1);
+	};
+	
+	if a<=(1 != 2) then
+	    {
+	    label-x:
+	    a = a - 1;
+	    print "A era=15\n";
+	    };
+}
+
+int incn (int x , int n )
+  {
+  return x+n;
+  }

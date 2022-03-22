@@ -1,0 +1,25 @@
+# run with bash run_tests
+
+make clean
+make
+
+echo "Running sample.txt -> Should pass"
+./etapa4 tests/sample.txt
+
+echo "Running label.txt -> Check file"
+./etapa4 tests/label.txt
+
+echo "Running empty_command.txt -> Should pass"
+./etapa4 tests/empty_command.txt
+
+echo "Running init_vector.txt -> Should fail on line 3"
+./etapa4 tests/init_vector.txt
+
+echo "Running if-else.txt -> Should pass"
+./etapa4 tests/if-else.txt
+
+echo "Running print.txt -> Should pass"
+./etapa4 tests/print.txt
+
+echo "Running block_vazio.txt -> Should pass"
+./etapa4 tests/bloco_vazio.txt

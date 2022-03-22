@@ -1,0 +1,9 @@
+int a: 20;
+int b: 'c';
+float c[10]: 1 2 3 4;
+
+float main() {
+	a = 5;
+	b = 777 ;
+	main = 99 + b -(a) ;
+}
