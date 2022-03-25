@@ -27,9 +27,11 @@ int is_number(AST_NODE *node)
   if (is_arithmetic(node->type) ||
     (node->type == AST_SYMBOL && node->symbol->type == SYMBOL_LITINT)   ||
     (node->type == AST_SYMBOL && node->symbol->type == SYMBOL_LITCHAR)  ||
-    (node->type == AST_SYMBOL && node->symbol->type == SYMBOL_VARIABLE) || // acho que nao precisa testar datatype, pq nao existe bool
-    (node->type == AST_FUNC_CALL && node->symbol->datatype)             || // minuto 59 da aula. Nao existe tipo bool, entao qqlr datatype funciona
-    (node->type == AST_PAR && is_number(node->son[0]))
+    (node->type == AST_SYMBOL && node->symbol->type == SYMBOL_VARIABLE) ||  // acho que nao precisa testar datatype, pq nao existe bool
+    (node->type == AST_PAR && is_number(node->son[0]))                  ||
+    (node->type == AST_VEC_ACCESS)                                      ||
+    (node->type == AST_READ)                                            ||
+    (node->type == AST_FUNC_CALL && node->datatype != DATATYPE_BOOL)        // minuto 59 da aula. Nao existe tipo bool, entao qqlr datatype funciona
   ) {
     return 1;
   }
@@ -150,12 +152,26 @@ void check_undeclared()
 
 void check_and_set_datatype(AST_NODE *node)
 {
-  if (node->son[0]->symbol->datatype == DATATYPE_FLOAT || node->son[1]->symbol->datatype == DATATYPE_FLOAT)
-    node->datatype = DATATYPE_FLOAT;
-  else if (node->son[0]->datatype == DATATYPE_FLOAT || node->son[1]->datatype == DATATYPE_FLOAT)
-    node->datatype = DATATYPE_FLOAT;  
-  else {
-    node->datatype = DATATYPE_INT;  // poderia ser char tbm, mas sao intercambiaveis, entao tanto faz
+  if (node->son[0]->symbol) {
+    if (node->son[0]->symbol->datatype == DATATYPE_FLOAT || node->son[0]->datatype == DATATYPE_FLOAT)
+      node->datatype = DATATYPE_FLOAT;
+
+    else if (node->son[0]->symbol->datatype == DATATYPE_INT || node->son[0]->datatype == DATATYPE_INT)
+      node->datatype = DATATYPE_INT;
+      
+    else if (node->son[0]->symbol->datatype == DATATYPE_CHAR || node->son[0]->datatype == DATATYPE_CHAR)
+      node->datatype = DATATYPE_CHAR;
+  }
+
+  if (node->son[1]->symbol) {
+    if (node->son[1]->symbol->datatype == DATATYPE_FLOAT || node->son[1]->datatype == DATATYPE_FLOAT)
+      node->datatype = DATATYPE_FLOAT;
+
+    else if (node->son[1]->symbol->datatype == DATATYPE_INT || node->son[1]->datatype == DATATYPE_INT)
+      node->datatype = DATATYPE_INT;
+      
+    else if (node->son[1]->symbol->datatype == DATATYPE_CHAR || node->son[1]->datatype == DATATYPE_CHAR)
+      node->datatype = DATATYPE_CHAR;
   }
 }
 
@@ -163,7 +179,7 @@ void check_operands(AST_NODE *node)
 {
   if (node == 0)
     return;
-
+    
   for (int i=0; i<MAX_SONS; i++)
     check_operands(node->son[i]);
 
@@ -346,19 +362,6 @@ void check_nature(AST_NODE *node)
       }
       break;
 
-    case AST_RETURN:  // basta testar se eh bool -> os numericos sao compatives neste caso
-      if (node->son[0]->symbol) {
-        if (node->son[0]->symbol->datatype == DATATYPE_BOOL) {
-          fprintf(stderr, "SEMANTIC ERROR: return of type bool, expected a number\n");
-          SEMANTIC_ERRORS++;
-        }
-      }
-      else if (node->son[0]->datatype == DATATYPE_BOOL) {
-        fprintf(stderr, "SEMANTIC ERROR: return of type bool, expected a number\n");
-        SEMANTIC_ERRORS++; 
-      }
-      break;
-
     default: break;
   }
 
@@ -387,7 +390,7 @@ void check_vector_index(AST_NODE *node)
       break;
 
     case AST_ASSIGN:
-      if (!node->son[1])  // assign de vetor tem son[1] nao nulo
+      if (node->son[1] == 0)  // assign de vetor tem son[1] nao nulo
         break; 
       if (node->son[0]->symbol) {
         if (node->son[0]->symbol->datatype == DATATYPE_FLOAT || node->son[0]->symbol->datatype == DATATYPE_BOOL) {
@@ -406,4 +409,61 @@ void check_vector_index(AST_NODE *node)
   }
   for (int i=0; i<MAX_SONS; i++)
     check_vector_index(node->son[i]);
+}
+
+void check_bool_usage(AST_NODE *node) {
+  if (node == 0)
+    return;
+
+  switch (node->type)
+  {
+    case AST_ASSIGN:
+      if (node->son[1] == 0) {  // assign de vetor tem son[1] nao nulo
+        if (node->son[0]->datatype == DATATYPE_BOOL || (node->son[0]->symbol && node->son[0]->symbol->datatype == DATATYPE_BOOL)) {
+          fprintf(stderr, "SEMANTIC ERROR: incompatible types - cannot assign bool to variable %s\n", node->symbol->text);
+          SEMANTIC_ERRORS++;
+        }
+      }
+      else {
+        if (node->son[1]->datatype == DATATYPE_BOOL || (node->son[1]->symbol && node->son[1]->symbol->datatype == DATATYPE_BOOL)) {
+          fprintf(stderr, "SEMANTIC ERROR: incompatible types - cannot assign bool to vector %s\n", node->symbol->text);
+          SEMANTIC_ERRORS++;
+        }  
+      }
+      break;
+    
+    case AST_RETURN:  // basta testar se eh bool -> os numericos sao compatives neste caso
+      if (node->son[0]->symbol) {
+        if (node->son[0]->symbol->datatype == DATATYPE_BOOL) {
+          fprintf(stderr, "SEMANTIC ERROR: return of type bool, expected a number\n");
+          SEMANTIC_ERRORS++;
+        }
+      }
+      else if (node->son[0]->datatype == DATATYPE_BOOL) {
+        fprintf(stderr, "SEMANTIC ERROR: return of type bool, expected a number\n");
+        SEMANTIC_ERRORS++; 
+      }
+      break;
+
+    case AST_IF_ELSE:
+    case AST_IF:
+      if (node->son[0]->datatype != DATATYPE_BOOL || (node->son[0]->symbol && node->son[0]->symbol->datatype != DATATYPE_BOOL)) {
+        fprintf(stderr, "SEMANTIC ERROR: incompatible types - expected bool after keyword if\n");
+        SEMANTIC_ERRORS++;
+      }
+      break;
+
+    case AST_WHILE:
+      if (node->son[0]->datatype != DATATYPE_BOOL || (node->son[0]->symbol && node->son[0]->symbol->datatype != DATATYPE_BOOL)) {
+        fprintf(stderr, "SEMANTIC ERROR: incompatible types - expected bool after keyword while\n");
+        SEMANTIC_ERRORS++;
+      }
+      break;
+
+    default: break;
+
+  }
+
+  for (int i=0; i<MAX_SONS; i++)
+    check_bool_usage(node->son[i]);
 }
