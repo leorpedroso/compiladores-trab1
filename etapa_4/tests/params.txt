@@ -22,4 +22,3 @@ int incn (int x , int n)
   }
   
 char z () {}
-

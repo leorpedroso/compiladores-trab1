@@ -100,7 +100,9 @@ programa: decl  { node = $1;
                   check_operands(node);
                   check_nature(node); 
                   check_vector_index(node); 
-                  check_bool_usage(node); }
+                  check_bool_usage(node);
+                  check_vector_size(node);
+                  check_function_params(node); }
   ;
 
 decl: dec decl  { $$ = astCreate(AST_DECL, 0, $1, $2, 0, 0); }

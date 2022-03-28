@@ -74,7 +74,7 @@ void hashPrint()
 
    for (int i=0; i<HASH_SIZE; i++)
       for (node=Table[i]; node; node=node->next)
-         printf("Table[%d] has %s, type %d, datatype %d\n", i, node->text, node->type, node->datatype);
+         printf("Table[%d] has %s, type %d, datatype %d, params %d\n", i, node->text, node->type, node->datatype, node->param_count);
 }
 
 int hashCheckUndeclared()

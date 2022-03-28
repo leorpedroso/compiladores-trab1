@@ -1,0 +1,10 @@
+char a: 20;
+char i:300;
+
+int main() {
+	while i {};
+	while i!=0 {};	
+}
+
+char garboror() if a then print "10" else print "20"
+int guzmagag() if a==i then print "10" else print "20"

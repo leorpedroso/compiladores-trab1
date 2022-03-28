@@ -101,6 +101,7 @@ void check_and_set_declaration(AST_NODE *node)
         check_identifier(node);
         node->symbol->type = SYMBOL_FUNCTION;
         node->symbol->datatype = DATATYPE_INT;
+        node->symbol->param_count = count_function_params(node->son[0]);
       }
       break;
 
@@ -109,6 +110,7 @@ void check_and_set_declaration(AST_NODE *node)
         check_identifier(node);
         node->symbol->type = SYMBOL_FUNCTION;
         node->symbol->datatype = DATATYPE_CHAR;
+        node->symbol->param_count = count_function_params(node->son[0]);
       }
       break;
 
@@ -117,6 +119,7 @@ void check_and_set_declaration(AST_NODE *node)
         check_identifier(node);
         node->symbol->type = SYMBOL_FUNCTION;
         node->symbol->datatype = DATATYPE_FLOAT;
+        node->symbol->param_count = count_function_params(node->son[0]);
       }
       break;
 
@@ -322,9 +325,6 @@ void check_operands(AST_NODE *node)
 
 void check_nature(AST_NODE *node)
 {
-  // tamanho e lista de init do vetor
-  // lista de parametros - 1:23
-
   if (node == 0)
     return;
 
@@ -431,7 +431,7 @@ void check_bool_usage(AST_NODE *node) {
         }  
       }
       break;
-    
+
     case AST_RETURN:  // basta testar se eh bool -> os numericos sao compatives neste caso
       if (node->son[0]->symbol) {
         if (node->son[0]->symbol->datatype == DATATYPE_BOOL) {
@@ -445,6 +445,11 @@ void check_bool_usage(AST_NODE *node) {
       }
       break;
 
+    case AST_FUNC_CALL:
+      check_bool_params(node->son[0]);
+
+      break;
+      
     case AST_IF_ELSE:
     case AST_IF:
       if (node->son[0]->datatype != DATATYPE_BOOL || (node->son[0]->symbol && node->son[0]->symbol->datatype != DATATYPE_BOOL)) {
@@ -466,4 +471,84 @@ void check_bool_usage(AST_NODE *node) {
 
   for (int i=0; i<MAX_SONS; i++)
     check_bool_usage(node->son[i]);
+}
+
+void check_bool_params(AST_NODE *node) {
+  if (node == 0)
+    return;
+  if (node->son[0]->datatype == DATATYPE_BOOL) {
+    fprintf(stderr, "SEMANTIC ERROR: param cannot be of type bool\n");
+    SEMANTIC_ERRORS++; 
+  }
+  check_bool_params(node->son[1]);
+}
+
+void check_vector_size(AST_NODE *node) {
+  int count;
+
+  if (node == 0)
+    return;
+
+  switch (node->type)
+  {
+    case AST_DEC_VEC_INT:
+    case AST_DEC_VEC_CHAR:
+    case AST_DEC_VEC_FLOAT:
+      count = count_vector_size(node->son[1]);
+      if (atoi(node->son[0]->symbol->text) == 0) {
+        fprintf(stderr, "SEMANTIC ERROR: vector size cannot be zero\n");
+        SEMANTIC_ERRORS++;
+      }
+      if ((count != 0) && atoi(node->son[0]->symbol->text) != count) {
+        fprintf(stderr, "SEMANTIC ERROR: expected vector init arguments to be %s but given %d\n", node->son[0]->symbol->text, count);
+        SEMANTIC_ERRORS++;
+      }
+
+      break;
+
+    default:
+      break;
+  }
+
+  for (int i=0; i<MAX_SONS; i++)
+    check_vector_size(node->son[i]);
+}
+
+int count_vector_size(AST_NODE *node) {
+  if (node == 0)
+    return 0;
+  if (node->son[0] == 0)
+    return 1;
+  return 1+count_vector_size(node->son[0]);
+}
+
+void check_function_params(AST_NODE *node) {
+  int count, dec_count;
+
+  if (node == 0)
+    return;
+
+  switch (node->type)
+  {
+    case AST_FUNC_CALL:
+      count = count_function_params(node->son[0]);
+      dec_count = hashFind(node->symbol->text)->param_count;
+      if (count != dec_count) {
+        fprintf(stderr, "SEMANTIC ERROR: param count for function %s doesn't match - expected %d and got %d\n", node->symbol->text, dec_count, count);
+        SEMANTIC_ERRORS++;
+      }
+      break;
+    
+    default:
+      break;
+  }
+
+  for (int i=0; i<MAX_SONS; i++)
+    check_function_params(node->son[i]);
+}
+
+int count_function_params(AST_NODE *node) {
+  if (node == 0)
+    return 0;
+  return 1 + count_function_params(node->son[1]);
 }

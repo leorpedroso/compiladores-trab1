@@ -1,0 +1,6 @@
+int a[0];
+int f[0] : 2;
+int b[1];
+float c[2] : 'a' 'b';
+int d[4] : 'a';
+int e[5] : 'a' 'b' 3 4 '5' 0;
