@@ -1,0 +1,5 @@
+int e:1;
+int limao(){
+	e = 1<1;
+	return e;
+}

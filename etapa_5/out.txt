@@ -1,0 +1,12 @@
+int a:1;
+int b:2;
+int x:3;
+int fun() 
+{
+a=5;
+b=777;
+x=99 + b + fun() - 1111;
+if a < 0 then a=5;
+if b != 12 then b=5else b=1;
+x=400;
+}

@@ -1,0 +1,24 @@
+int a: 20;
+int b: 'c';
+float c[10]: 1 2 3 4;
+int d[0]: 10;
+
+float main() {
+	a = 5;
+	b = 777 ;
+	limao = a + 99 ;
+	a = limao();
+	b = a();	
+	a = b[0];
+	c[0] = 10;
+e:
+	d[2] = '5';
+label-f:
+	goto label-f;
+	goto a;
+}
+
+char e : 0;
+int limao(int a, int b) {
+	return a+b;
+}

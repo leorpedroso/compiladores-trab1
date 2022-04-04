@@ -1,0 +1,4 @@
+int escreve (int a, char b, float c) {print ";";}
+
+\\ nao funciona com lista vazia
+int main () print a
