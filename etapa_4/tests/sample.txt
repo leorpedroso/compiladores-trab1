@@ -13,7 +13,7 @@ This is a comment
 of multiple lines
 *\
 
-float main ()
+float main (int x)
   {
   a = 0;
   a = a - i;

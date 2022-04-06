@@ -11,6 +11,8 @@ float main() {
 	b = a();	
 	a = b[0];
 	c[0] = 10;
+	a = c+1;
+	a = 2 - main;
 e:
 	d[2] = '5';
 label-f:

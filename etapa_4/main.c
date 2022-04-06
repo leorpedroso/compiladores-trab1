@@ -7,12 +7,14 @@ Leonardo Rodrigues Pedroso
 #include <stdlib.h>
 #include "hash.h"
 #include "ast.h"
+#include "semantic.h"
 
 //lex.yy.h
 int yylex();
 extern char *yytext;
 extern FILE *yyin;
 extern AST_NODE *node;
+extern int SEMANTIC_ERRORS;
 extern int yyparse();
 void initMe();
 
@@ -55,6 +57,11 @@ int main(int argc, char **argv)
 
   fclose(f);
   hashPrint();
+
+  if (SEMANTIC_ERRORS > 0) {
+    fprintf(stderr, "%d Semantic errors detected\n", SEMANTIC_ERRORS);
+    exit(4);
+  }
   
   exit(0);
 }

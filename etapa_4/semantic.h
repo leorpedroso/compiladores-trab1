@@ -22,8 +22,10 @@ void check_operands(AST_NODE *node);
 void check_nature(AST_NODE *node);
 void check_vector_index(AST_NODE *node);
 void check_and_set_datatype(AST_NODE *node);
+int _check_and_set_datatype(AST_NODE *node);
 void check_bool_usage(AST_NODE *node);
 void check_vector_size(AST_NODE *node);
 void check_function_params(AST_NODE *node);
+void check_param_types(AST_NODE *node, char* func);
 
 #endif

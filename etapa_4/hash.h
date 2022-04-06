@@ -29,6 +29,7 @@ typedef struct hash_node
   int type;
   int datatype;
   int param_count;
+  char *scope;
   char *text;
   struct hash_node *next;
 } HASH_NODE;

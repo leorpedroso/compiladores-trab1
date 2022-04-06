@@ -1,14 +1,5 @@
-int a: 20;
-float b:1/1;
-char c : 2;
-
-char main() 
-{
-	return a;
-	return b;
-	return c;
-	return 1+1;
-	return 'a'*20;
-	return a<(b/c);
+int e:1;
+int limao(){
+	e = 1<1;
+	return e;
 }
-

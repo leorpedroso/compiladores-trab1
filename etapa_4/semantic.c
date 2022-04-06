@@ -46,7 +46,6 @@ void check_and_set_declaration(AST_NODE *node)
   switch (node->type)
   {
     case AST_DEC_INT: 
-    case AST_ARG_INT:
       if (node->symbol) {
         check_identifier(node);
         node->symbol->type = SYMBOL_VARIABLE;
@@ -55,7 +54,6 @@ void check_and_set_declaration(AST_NODE *node)
       break;
 
     case AST_DEC_CHAR:
-    case AST_ARG_CHAR:
       if (node->symbol) {
         check_identifier(node);
         node->symbol->type = SYMBOL_VARIABLE;
@@ -64,7 +62,6 @@ void check_and_set_declaration(AST_NODE *node)
       break;
       
     case AST_DEC_FLOAT:
-    case AST_ARG_FLOAT:
       if (node->symbol) {
         check_identifier(node);
         node->symbol->type = SYMBOL_VARIABLE;
@@ -102,6 +99,8 @@ void check_and_set_declaration(AST_NODE *node)
         node->symbol->type = SYMBOL_FUNCTION;
         node->symbol->datatype = DATATYPE_INT;
         node->symbol->param_count = count_function_params(node->son[0]);
+        if (node->son[0] != 0) // se funcao tem parametros definidos 
+          check_param_types(node->son[0], node->symbol->text);
       }
       break;
 
@@ -155,28 +154,63 @@ void check_undeclared()
 
 void check_and_set_datatype(AST_NODE *node)
 {
-  if (node->son[0]->symbol) {
-    if (node->son[0]->symbol->datatype == DATATYPE_FLOAT || node->son[0]->datatype == DATATYPE_FLOAT)
-      node->datatype = DATATYPE_FLOAT;
+  int d1, d2;
 
-    else if (node->son[0]->symbol->datatype == DATATYPE_INT || node->son[0]->datatype == DATATYPE_INT)
-      node->datatype = DATATYPE_INT;
-      
-    else if (node->son[0]->symbol->datatype == DATATYPE_CHAR || node->son[0]->datatype == DATATYPE_CHAR)
-      node->datatype = DATATYPE_CHAR;
+  if (node->type == AST_PAR) {
+    node->datatype = _check_and_set_datatype(node->son[0]);
+    return;
   }
 
-  if (node->son[1]->symbol) {
-    if (node->son[1]->symbol->datatype == DATATYPE_FLOAT || node->son[1]->datatype == DATATYPE_FLOAT)
-      node->datatype = DATATYPE_FLOAT;
+  d1 = _check_and_set_datatype(node->son[0]);
+  d2 = _check_and_set_datatype(node->son[1]);
 
-    else if (node->son[1]->symbol->datatype == DATATYPE_INT || node->son[1]->datatype == DATATYPE_INT)
-      node->datatype = DATATYPE_INT;
-      
-    else if (node->son[1]->symbol->datatype == DATATYPE_CHAR || node->son[1]->datatype == DATATYPE_CHAR)
-      node->datatype = DATATYPE_CHAR;
-  }
+  if (d1 > d2)
+    node->datatype = d1;
+  else 
+    node->datatype = d2;
 }
+
+int _check_and_set_datatype(AST_NODE *node) // Returns 1 if set to float, 0 otherwise 
+{
+  int datatype = 0;
+    
+  if (node->symbol) 
+    datatype = node->symbol->datatype;
+  else 
+    datatype = node->datatype;
+
+  return datatype;
+}
+
+// void check_and_set_datatype(AST_NODE *node)
+// {
+//   if (node->son[0]->symbol) {
+//     if (node->son[0]->symbol->datatype == DATATYPE_FLOAT || node->son[0]->datatype == DATATYPE_FLOAT)
+//       node->datatype = DATATYPE_FLOAT;
+
+//     else if (node->son[0]->symbol->datatype == DATATYPE_INT || node->son[0]->datatype == DATATYPE_INT)
+//       node->datatype = DATATYPE_INT;
+      
+//     else if (node->son[0]->symbol->datatype == DATATYPE_CHAR || node->son[0]->datatype == DATATYPE_CHAR)
+//       node->datatype = DATATYPE_CHAR;
+//   }
+//   else if (node->son[0]->datatype == DATATYPE_FLOAT)
+//     node->datatype == DATATYPE_FLOAT;
+
+//   if ((node->type != AST_PAR) && (node->son[1]->symbol)) {
+//     if (node->son[1]->symbol->datatype == DATATYPE_FLOAT || node->son[1]->datatype == DATATYPE_FLOAT)
+//       node->datatype = DATATYPE_FLOAT;
+
+//     else if (node->son[1]->symbol->datatype == DATATYPE_INT || node->son[1]->datatype == DATATYPE_INT)
+//       node->datatype = DATATYPE_INT;
+      
+//     else if (node->son[1]->symbol->datatype == DATATYPE_CHAR || node->son[1]->datatype == DATATYPE_CHAR)
+//       node->datatype = DATATYPE_CHAR;
+//   }
+
+//   // if ((node->son[0]->datatype == DATATYPE_FLOAT) || (node->son[1]->datatype == DATATYPE_FLOAT))
+//   //   node->datatype == DATATYPE_FLOAT;
+// }
 
 void check_operands(AST_NODE *node)
 {
@@ -318,6 +352,16 @@ void check_operands(AST_NODE *node)
 
       break;
 
+    case AST_PAR:
+      if (is_number(node->son[0])) {
+        node->datatype = _check_and_set_datatype(node->son[0]);
+        check_and_set_datatype(node);
+      }
+      else 
+        node->datatype = DATATYPE_BOOL;
+
+      break;
+
     default:
       break;
   }
@@ -328,6 +372,9 @@ void check_nature(AST_NODE *node)
   if (node == 0)
     return;
 
+  for (int i=0; i<MAX_SONS; i++)
+    check_nature(node->son[i]);
+
   switch (node->type)
   {
     case AST_ASSIGN:
@@ -337,6 +384,17 @@ void check_nature(AST_NODE *node)
       }
       else if (node->symbol->type != SYMBOL_VECTOR && node->son[1] != NULL) {
         fprintf(stderr, "SEMANTIC ERROR: identifier %s is not a vector\n", node->symbol->text);
+        SEMANTIC_ERRORS++;
+      }
+      break;
+
+    case AST_SYMBOL: // AST_SYMBOL eh sempre literal ou variavel
+      if (node->symbol->type == SYMBOL_VECTOR) {
+        fprintf(stderr, "SEMANTIC ERROR: vector %s used as scalar\n", node->symbol->text);
+        SEMANTIC_ERRORS++;
+      }
+      else if (node->symbol->type == SYMBOL_FUNCTION) {
+        fprintf(stderr, "SEMANTIC ERROR: function %s used as scalar\n", node->symbol->text);
         SEMANTIC_ERRORS++;
       }
       break;
@@ -365,8 +423,6 @@ void check_nature(AST_NODE *node)
     default: break;
   }
 
-  for (int i=0; i<MAX_SONS; i++)
-    check_nature(node->son[i]);
 }
 
 void check_vector_index(AST_NODE *node)
@@ -476,7 +532,7 @@ void check_bool_usage(AST_NODE *node) {
 void check_bool_params(AST_NODE *node) {
   if (node == 0)
     return;
-  if (node->son[0]->datatype == DATATYPE_BOOL) {
+  if (node->son[0]->datatype == DATATYPE_BOOL || (node->son[0]->symbol && (node->son[0]->symbol->datatype == DATATYPE_BOOL))) {
     fprintf(stderr, "SEMANTIC ERROR: param cannot be of type bool\n");
     SEMANTIC_ERRORS++; 
   }
@@ -551,4 +607,37 @@ int count_function_params(AST_NODE *node) {
   if (node == 0)
     return 0;
   return 1 + count_function_params(node->son[1]);
+}
+
+void check_param_types(AST_NODE *node, char* func) {
+  if (node == 0)
+    return;
+  switch (node->son[0]->type)
+  {
+    case AST_ARG_INT:
+      node->son[0]->symbol->type = SYMBOL_VARIABLE;
+      node->son[0]->symbol->datatype = DATATYPE_INT;
+      node->son[0]->symbol->scope = func;
+
+      break;
+
+    case AST_ARG_CHAR:
+      node->son[0]->symbol->type = SYMBOL_VARIABLE;
+      node->son[0]->symbol->datatype = DATATYPE_CHAR;
+      node->son[0]->symbol->scope = func;
+      
+      break;
+
+    case AST_ARG_FLOAT:
+      node->son[0]->symbol->type = SYMBOL_VARIABLE;
+      node->son[0]->symbol->datatype = DATATYPE_FLOAT;
+      node->son[0]->symbol->scope = func;
+      
+      break;
+    
+    default:
+      break;
+  }
+
+  check_param_types(node->son[1], func);
 }

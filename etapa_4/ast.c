@@ -183,14 +183,19 @@ void astPrintNode(AST_NODE *node)
   case AST_DECL: fprintf(stderr, "AST_DECL");
     break;
 
+  case AST_PAR: fprintf(stderr, "AST_PAR");
+    break;
+    
   default: fprintf(stderr, "AST_UNKNOWN");
     break;
   }
 
   if (node->symbol != 0)
-    fprintf(stderr, ", %s\n", node->symbol->text);
+    fprintf(stderr, ", %s", node->symbol->text);
   else
-    fprintf(stderr, ", 0\n");
+    fprintf(stderr, ", 0");
+
+  fprintf(stderr, " %d.\n", node->datatype);
 }
 
 void astDecompile(FILE* f, AST_NODE *node)

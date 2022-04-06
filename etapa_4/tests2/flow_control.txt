@@ -1,7 +1,0 @@
-int main () {
-	if read then a=10;
-	if (a<10) then print "true" else print "false";
-	f:
-	goto f;
-	while a<10 a=11;
-}
