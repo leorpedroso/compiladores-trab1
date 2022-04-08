@@ -55,7 +55,15 @@ void tacPrint(TAC* tac) {
     case TAC_JFALSE:  fprintf(stderr, "TAC_JFALSE");  break;
     case TAC_JUMP:    fprintf(stderr, "TAC_JUMP");    break;
     case TAC_LABEL:   fprintf(stderr, "TAC_LABEL");   break;
-    default:          fprintf(stderr, "TAC_UNKNOWN"); break;
+    case TAC_CALL:    fprintf(stderr, "TAC_CALL");    break;
+    case TAC_ARG:     fprintf(stderr, "TAC_ARG");     break;
+    case TAC_RET:     fprintf(stderr, "TAC_RET");     break;
+    case TAC_PRINT:   fprintf(stderr, "TAC_PRINT");   break;
+    case TAC_READ:      fprintf(stderr, "TAC_READ");      break;
+    case TAC_BEGINFUN:  fprintf(stderr, "TAC_BEGINFUN");  break;
+    case TAC_ENDFUN:    fprintf(stderr, "TAC_ENDFUN");    break;
+    default:            fprintf(stderr, "TAC_UNKNOWN");   break;
+    
   }
 
   fprintf(stderr, ",%s", (tac->res) ? tac->res->text : "0");
@@ -100,7 +108,6 @@ TAC* makeIfThenElse(TAC *code0, TAC *code1, TAC *code2) {
   TAC *jumpTac = 0;
   TAC *labelElseTac = 0;
   TAC *labelEndTac = 0;
-  HASH_NODE *newElseLabel = 0;
   HASH_NODE *labelElse = 0;
   HASH_NODE *labelEnd = 0;
 
@@ -130,6 +137,101 @@ TAC* makeIfThenElse(TAC *code0, TAC *code1, TAC *code2) {
   */
 }
 
+TAC* makeWhile(TAC *code0, TAC *code1) {
+  TAC *jumpFalseTac = 0;
+  TAC *jumpTac = 0;
+  TAC *labelStartTac = 0;
+  TAC *labelEndTac = 0;
+  HASH_NODE *labelStart = 0;
+  HASH_NODE *labelEnd = 0;
+  
+  labelStart = makeLabel();
+  labelEnd = makeLabel();
+
+  jumpFalseTac = tacCreate(TAC_JFALSE, labelEnd, code0 ? code0->res : 0, 0);
+  jumpFalseTac->prev = code0;
+
+  jumpTac = tacCreate(TAC_JUMP, labelStart, 0, 0);
+  jumpTac->prev = code1;
+
+  labelStartTac = tacCreate(TAC_LABEL, labelStart, 0, 0);
+  labelEndTac = tacCreate(TAC_LABEL, labelEnd, 0, 0);
+
+  return tacJoin(labelStartTac, tacJoin(jumpFalseTac, tacJoin(jumpTac, labelEndTac)));
+  /*
+  labelStart:
+  code0
+  JFALSE labelEnd
+  code1
+  JUMP labelStart
+  labelEnd:
+  */
+}
+
+TAC* makeFuncCall(HASH_NODE *node, TAC *code0) {
+  
+  // para cada param em code, cria um tac arg
+  // cada tac arg vai ter um identificador temp unico
+  // tac call pq tem que criar um label para saber pra onde voltar - acho que a ideia eh abstrair isso entao
+  // tac ret so retorna
+
+  // acho que nao precisa implementar -> uso de tac arg, call e ret eh para abstrair essa implementacao
+  // daria pra fazer so usando jump e tal eu acho
+
+  // TAC(TAC_CALL, func_name, 0, 0)
+
+  TAC *funcTac = 0;
+
+  funcTac = tacCreate(TAC_CALL, node, 0, 0);
+  return tacJoin(code0, funcTac);
+
+  /*
+  arg1 = x
+  arg2 = y
+  call func
+  ...
+  func:
+  ...
+  return
+  */
+}
+
+TAC* makeExprArgs(TAC *code0, TAC *code1) {
+  TAC *argTac;
+
+  argTac = tacCreate(TAC_ARG, code0 ? code0->res : 0, 0, 0);
+  if (code0)
+    argTac->prev = code0;
+  
+  return tacJoin(code1, argTac);
+}
+
+TAC* makePrint(HASH_NODE *node, TAC *code0, TAC *code1) {
+  // gera um print para cada argumento
+  TAC *printTac;
+  TAC *result;
+
+  if (node) { // se tem symbol entao eh lit string
+    result = tacCreate(TAC_PRINT, node, 0, 0);
+  }
+  else {
+    printTac = tacCreate(TAC_PRINT, code0 ? code0->res : 0, 0, 0);
+    result = tacJoin(code0, printTac);
+  }
+
+  return result;
+}
+
+TAC* makeFuncDec(AST_NODE *node, TAC *code1) {
+  TAC *startTac;
+  TAC *endTac;
+
+  startTac = tacCreate(TAC_BEGINFUN, node->son[0]->symbol, 0, 0);
+  endTac = tacCreate(TAC_ENDFUN, node->son[0]->symbol, 0, 0);
+
+  return tacJoin(startTac, tacJoin(code1, endTac));
+}
+
 TAC* generateCode(AST_NODE *node) {
   TAC *result = 0;
   TAC *code[MAX_SONS];
@@ -145,7 +247,7 @@ TAC* generateCode(AST_NODE *node) {
     case AST_SYMBOL: result = tacCreate(TAC_SYMBOL, node->symbol, 0, 0);
       break;
   
-    case AST_ADD: 
+    case AST_ADD:
       result = makeBinOperation(TAC_ADD, code[0], code[1]);
       break;
 
@@ -189,12 +291,49 @@ TAC* generateCode(AST_NODE *node) {
       result = tacJoin(code[0], tacCreate(TAC_COPY, node->symbol, code[0] ? code[0]->res : 0, 0));
       break;
 
+    case AST_FUNC_CALL:
+      result = makeFuncCall(node->symbol, code[0]);
+      break;
+
+    case AST_EXPR_ARGS:
+    case AST_REST_3:
+      result = makeExprArgs(code[0], code[1]);
+      break;
+
+    case AST_RETURN:
+      result = tacJoin(code[0], tacCreate(TAC_RET, code[0] ? code[0]->res : 0, 0, 0));
+      break;
+
+    case AST_VALUE: // print
+      result = makePrint(node->symbol, code[0], code[1]);
+      break;
+
+    case AST_READ:
+      result = tacCreate(TAC_READ, makeTemp(), 0, 0);
+      break;
+
     case AST_IF:
       result = makeIfThen(code[0], code[1]);
       break;
 
     case AST_IF_ELSE:
       result = makeIfThenElse(code[0], code[1], code[2]);
+      break;
+
+    case AST_WHILE:
+      result = makeWhile(code[0], code[1]);
+      break;
+
+    case AST_GOTO:
+      result = tacCreate(TAC_JUMP, node->symbol, 0, 0);
+      break;
+
+    case AST_LABEL:
+      result = tacJoin(tacCreate(TAC_LABEL, node->symbol, 0, 0), code[0]);
+      break;
+
+    case AST_FUNC_DEC:
+      result = makeFuncDec(node, code[1]);
       break;
 
     default: result = tacJoin(code[0], tacJoin(code[1], tacJoin(code[2], code[3])));

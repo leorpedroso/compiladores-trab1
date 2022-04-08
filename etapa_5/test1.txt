@@ -4,8 +4,9 @@ int x:3;
 int fun() {
 	a = 5;
 	b = 777;
-	x = 99 + b + fun() - 1111;
+	x = 99 + b + fun(10, x+20, a) - 1111;
 	if a<0 then a=5;
 	if b!=12 then b=5 else b=1;
 	x = 400;
+	while (a!=0) b=b+1;
 }
