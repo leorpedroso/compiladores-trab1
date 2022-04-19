@@ -1,0 +1,24 @@
+int a: 'A';
+int i: 1;
+float b: 3/2;
+
+int main () {
+	i = incn(i,1);
+    a = incn(a);
+    a = incn();
+    a = incn(1,2,3);
+    a = incn('3','2');
+    a = incn(b, 1);
+    a = incn(x, 1<1);  
+    a = incn(1!=2, '3'<='4');
+    i = z();    
+    i = z(1);
+    i = z(1,2,3);  
+ }
+
+int incn (int x , int n)
+  {
+  return x+n;
+  }
+  
+char z () {}

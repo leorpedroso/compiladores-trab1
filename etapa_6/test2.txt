@@ -1,0 +1,17 @@
+int a:1;
+int b:2;
+int x:3;
+int fun() {
+	print a;
+	a = 2;
+	print "GARUDA", a+1, "123124", x*4;
+	goto e;
+	if a>2 then {
+		return 1;
+	}
+	else return (b - x);
+e:
+	b = read / 4;
+	return b;
+}
+int main() a=a

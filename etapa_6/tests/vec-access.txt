@@ -1,0 +1,19 @@
+float a: 20/1;
+int b: 20;
+float c[10]: 1 2 3 4;
+char d: 'f';
+int e[1]: 'h';
+
+float main() 
+{
+	a = 5;
+	b = 777 ;
+	c[a/b] = '1';	\\erro aqui
+	a = c[b];	
+	a = c[a/b];	\\erro aqui
+	b = e[d];
+	a = e[b/b];
+	e[a] = 'f';	\\erro aqui
+	c[1!=2] = 2;	\\erro aqui
+}
+

@@ -1,0 +1,16 @@
+float a: 20/1;
+int b: 20;
+float c[4]: 1 2 3 4;
+char d: 'f';
+int e[1]: 'h';
+
+float main() 
+{
+	e[0] = 2;
+	c[3] = b+5;
+	a = c[b];	
+	b = e[d];
+	a = e[b/b];
+	e[1] = c[e[0]*b];
+}
+

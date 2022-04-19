@@ -1,0 +1,8 @@
+\\ a primeira linha passa
+\\ se descomentar as demais nao deve funcionar
+
+int label () {if (a<5) then {label_a:};}
+\\ int label () {if (a<5) then label_a:}	
+\\ int label () {if (a<5) then label_a:;}
+\\ int label () {if (a<5) then label_a}
+
