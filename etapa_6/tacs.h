@@ -1,6 +1,8 @@
 #ifndef TACS_HEADER
 #define TACS_HEADER
 
+#include <string.h>
+
 #include "hash.h"
 #include "ast.h"
 
@@ -29,6 +31,7 @@
 #define TAC_ENDFUN    23
 #define TAC_VEC_COPY  24
 #define TAC_VEC_ACCESS 25
+#define TAC_DEC_COPY  26
 
 typedef struct tac_node
 {
@@ -52,5 +55,8 @@ TAC* generateCode(AST_NODE *node);
 // ASM Generation
 TAC* reverse(TAC *tac);
 void generateASM(TAC *first);
+
+// Utils
+char* replaceChar(char* str, char find, char replace);
 
 #endif

@@ -26,11 +26,13 @@
 #define DATATYPE_FLOAT    3
 #define DATATYPE_BOOL     4
 
+
 typedef struct hash_node
 {
   int type;
   int datatype;
   int param_count;
+  int isTemp;
   char *scope;
   char *text;
   struct hash_node *next;

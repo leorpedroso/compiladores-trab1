@@ -94,46 +94,47 @@ int hashCheckUndeclared()
 HASH_NODE* makeTemp() {
    static int serial = 0;
    char buffer[256] = "";
+   HASH_NODE *node;
+
    sprintf(buffer, "MyTempThisMustBeUnique%d", serial++);
    hashInsert(buffer, SYMBOL_VARIABLE);
-   return hashFind(buffer);
+   node = hashFind(buffer);
+   node->isTemp = 1;
+   return node;
 }
 
 HASH_NODE* makeLabel() {
    static int serial = 0;
    char buffer[256] = "";
+   HASH_NODE *node;
+
    sprintf(buffer, "MyLabelThisMustBeUnique%d", serial++);
    hashInsert(buffer, SYMBOL_LABEL);
-   return hashFind(buffer);
+   node = hashFind(buffer);
+   node->isTemp = 1;
+   return node;
 }
 
 void printAsm(FILE *fout) {
    HASH_NODE* node;
-
-   fprintf(fout,
-      "\n## DATA SECTION\n"
-	   "\t.data\n\n"
-   );
+   struct AST_NODE* astNode;
+   
    for (int i=0; i<HASH_SIZE; i++)
       for (node=Table[i]; node; node=node->next)
          switch (node->type)
          {
-         case SYMBOL_VARIABLE:
-            fprintf(fout, "_%s:\t.long\t0\n", node->text);
-            break;
-         
-         case SYMBOL_LITINT:
-         //case SYMBOL_LITCHAR:    // litchar e litstring tem que ignorar '' e ""
-         //case SYMBOL_LITSTRING:
-            fprintf(fout, "_%s:\t.long\t%s\n", node->text, node->text);
-            break;
-
-         default:
-            break;
-         }
+            case SYMBOL_VARIABLE:
+               if (node->isTemp)
+                  fprintf(fout, "_%s:\t.long\t0\n", node->text);
+               break;
             
+            case SYMBOL_LITINT:
+            case SYMBOL_LITCHAR:    // litchar e litstring tem que ignorar '' e ""
+            //case SYMBOL_LITSTRING:
+               fprintf(fout, "_%s:\t.long\t%s\n", node->text, node->text);
+               break;
 
-   // para os literais so colocar node->text no lugar do zero
-   // para as variaveis tem que consultar o nodo da arvore associado ao simbolo
-   // percorre a arvore e anota na hash os valores de inicializacao
+            default:
+               break;
+         }
 }

@@ -396,3 +396,9 @@ void astDecompile(FILE* f, AST_NODE *node)
 
   }
 }
+
+AST_NODE *astFind(AST_NODE *node, HASH_NODE *symbol) {
+  if (node == 0)
+    return 0;
+
+}

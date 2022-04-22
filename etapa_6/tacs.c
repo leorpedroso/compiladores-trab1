@@ -65,6 +65,7 @@ void tacPrint(TAC* tac) {
     case TAC_ENDFUN:    fprintf(stderr, "TAC_ENDFUN");    break;
     case TAC_VEC_COPY:  fprintf(stderr, "TAC_VEC_COPY");  break;
     case TAC_VEC_ACCESS: fprintf(stderr, "TAC_VEC_ACCESS"); break;
+    case TAC_DEC_COPY:  fprintf(stderr, "TAC_DEC_COPY");  break;
     default:            fprintf(stderr, "TAC_UNKNOWN");   break;
   }
 
@@ -351,6 +352,12 @@ TAC* generateCode(AST_NODE *node) {
       result = makeFuncDec(node, code[1]);
       break;
 
+    case AST_DEC_INT:
+    case AST_DEC_CHAR:
+    //case AST_DEC_FLOAT:
+      result = tacCreate(TAC_DEC_COPY, node->symbol, node->son[0]->symbol, 0);
+      break;
+
     default: result = tacJoin(code[0], tacJoin(code[1], tacJoin(code[2], code[3])));
       break;
   }
@@ -472,6 +479,78 @@ void generateASM(TAC *first) {
         " movl	%%eax, _%s(%%rip)\n"
       , tac->op1->text, tac->op2->text, tac->res->text);
       break;
+    
+    case TAC_LT:
+      fprintf(fout,
+        "\n## TAC_LT\n"
+        " movl	_%s(%%rip), %%edx\n"
+        " movl	_%s(%%rip), %%eax\n"
+        " cmpl	%%eax, %%edx\n"
+        " setl	%%al\n"
+        " movzbl	%%al, %%eax\n"
+        " movl	%%eax, _%s(%%rip)\n"
+      , tac->op1->text, tac->op2->text, tac->res->text);
+      break;
+
+    case TAC_GT:
+      fprintf(fout,
+        "\n## TAC_GT\n"
+        " movl	_%s(%%rip), %%edx\n"
+        " movl	_%s(%%rip), %%eax\n"
+        " cmpl	%%eax, %%edx\n"
+        " setg	%%al\n"
+        " movzbl	%%al, %%eax\n"
+        " movl	%%eax, _%s(%%rip)\n"
+      , tac->op1->text, tac->op2->text, tac->res->text);
+      break;
+
+    case TAC_DIF:
+      fprintf(fout,
+        "\n## TAC_DIF\n"
+        " movl	_%s(%%rip), %%edx\n"
+        " movl	_%s(%%rip), %%eax\n"
+        " cmpl	%%eax, %%edx\n"
+        " setne	%%al\n"
+        " movzbl	%%al, %%eax\n"
+        " movl	%%eax, _%s(%%rip)\n"
+      , tac->op1->text, tac->op2->text, tac->res->text);
+      break;
+
+    case TAC_EQ:
+      fprintf(fout,
+        "\n## TAC_EQ\n"
+        " movl	_%s(%%rip), %%edx\n"
+        " movl	_%s(%%rip), %%eax\n"
+        " cmpl	%%eax, %%edx\n"
+        " sete	%%al\n"
+        " movzbl	%%al, %%eax\n"
+        " movl	%%eax, _%s(%%rip)\n"
+      , tac->op1->text, tac->op2->text, tac->res->text);
+      break;
+
+    case TAC_GE:
+      fprintf(fout,
+        "\n## TAC_GE\n"
+        " movl	_%s(%%rip), %%edx\n"
+        " movl	_%s(%%rip), %%eax\n"
+        " cmpl	%%eax, %%edx\n"
+        " setge	%%al\n"
+        " movzbl	%%al, %%eax\n"
+        " movl	%%eax, _%s(%%rip)\n"
+      , tac->op1->text, tac->op2->text, tac->res->text);
+      break;
+
+    case TAC_LE:
+      fprintf(fout,
+        "\n## TAC_LE\n"
+        " movl	_%s(%%rip), %%edx\n"
+        " movl	_%s(%%rip), %%eax\n"
+        " cmpl	%%eax, %%edx\n"
+        " setle	%%al\n"
+        " movzbl	%%al, %%eax\n"
+        " movl	%%eax, _%s(%%rip)\n"
+      , tac->op1->text, tac->op2->text, tac->res->text);
+      break;
 
     case TAC_COPY:
       fprintf(fout,
@@ -481,13 +560,58 @@ void generateASM(TAC *first) {
       , tac->op1->text, tac->res->text);
       break;
 
+    case TAC_VEC_COPY:
+      break;
+
+    case TAC_LABEL:
+      fprintf(fout,
+        "\n%s:\n"
+      , replaceChar(tac->res->text, '-', '.')); // replaces all '-' with '.'
+      break;
+
+    case TAC_JUMP:
+      fprintf(fout,
+        "\tjmp	%s\n"
+      , replaceChar(tac->res->text, '-', '.')); // replaces all '-' with '.'
+      break;
+
+    case TAC_JFALSE:
+      fprintf(fout,
+        "\n## TAC_JFALSE\n"
+        "\tmovl	_%s(%%rip), %%eax\n"
+        "\ttestl	%%eax, %%eax\n" // test if eax is 0
+        "\tje	%s\n"
+      , tac->op1->text, replaceChar(tac->res->text, '-', '.')); // replaces all '-' with '.'
+      break;
+
     default:
       break;
     }
   }
 
-  // Hash
-  printAsm(fout);
+  // Definitions
 
+  fprintf(fout,
+      "\n## DATA SECTION\n"
+	   "\t.data\n\n"
+   );
+
+  printAsm(fout); // TODO: printar string
+
+  for (tac = first; tac; tac = tac->next) // TODO: vetores
+    if (tac->type == TAC_DEC_COPY)
+      fprintf(fout, "_%s:\t.long\t%s\n", tac->res->text, tac->op1->text);
+
+  // Close file
   fclose(fout);
+}
+
+char* replaceChar(char* str, char find, char replace) {
+  char *ret = strdup(str);
+  char *current_pos = strchr(ret, find);
+  while (current_pos) {
+      *current_pos = replace;
+      current_pos = strchr(current_pos,find);
+  }
+  return ret;
 }
