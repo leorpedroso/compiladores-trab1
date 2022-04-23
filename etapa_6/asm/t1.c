@@ -1,11 +1,10 @@
 #include <stdio.h>
 
-int a=1;
-int b=2;
-int x=3;
-char* c;
-
+int a[3]={10, 20, 30};
+int b = 1;
+int c = 100;
 int main () {
-	c = "\n";
-	printf("%s",c);
+	// a[2] = b;
+	c = a[b];
+	printf("%d", c);
 }

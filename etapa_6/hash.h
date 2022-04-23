@@ -37,6 +37,7 @@ typedef struct hash_node
   char *scope;
   char *text;
   struct hash_node *next;
+  char *vec_init[20]; // vetor tem tamanho maximo 20
 } HASH_NODE;
 
 void hashInit();

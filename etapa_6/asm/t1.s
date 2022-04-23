@@ -2,41 +2,45 @@
 	.text
 	.globl	a
 	.data
-	.align 4
+	.align 8
 	.type	a, @object
-	.size	a, 4
+	.size	a, 12
 a:
-	.long	1
+	.long	10
+	.long	20
+	.long	30
 	.globl	b
 	.align 4
 	.type	b, @object
 	.size	b, 4
 b:
-	.long	2
-	.globl	x
+	.long	1
+	.globl	c
 	.align 4
-	.type	x, @object
-	.size	x, 4
-x:
-	.long	3
-	.comm	c,8,8
+	.type	c, @object
+	.size	c, 4
+c:
+	.long	100
 	.section	.rodata
 .LC0:
-	.string	"\n"
-.LC1:
-	.string	"%s"
+	.string	"%d"
 	.text
 	.globl	main
 	.type	main, @function
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-	
-	leaq	.LC0(%rip), %rax
-	movq	%rax, c(%rip)
-	movq	c(%rip), %rax
-	movq	%rax, %rsi
-	leaq	.LC1(%rip), %rdi
+
+	movl	b(%rip), %eax
+	cltq
+	leaq	0(,%rax,4), %rdx
+	leaq	a(%rip), %rax
+	movl	(%rdx,%rax), %eax
+	movl	%eax, c(%rip)
+
+	movl	c(%rip), %eax
+	movl	%eax, %esi
+	leaq	.LC0(%rip), %rdi
 	movl	$0, %eax
 	call	printf@PLT
 	movl	$0, %eax

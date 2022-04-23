@@ -66,6 +66,7 @@ void tacPrint(TAC* tac) {
     case TAC_VEC_COPY:  fprintf(stderr, "TAC_VEC_COPY");  break;
     case TAC_VEC_ACCESS: fprintf(stderr, "TAC_VEC_ACCESS"); break;
     case TAC_DEC_COPY:  fprintf(stderr, "TAC_DEC_COPY");  break;
+    case TAC_DEC_VEC:   fprintf(stderr, "TAC_DEC_VEC");   break;
     default:            fprintf(stderr, "TAC_UNKNOWN");   break;
   }
 
@@ -358,6 +359,12 @@ TAC* generateCode(AST_NODE *node) {
       result = tacCreate(TAC_DEC_COPY, node->symbol, node->son[0]->symbol, 0);
       break;
 
+    case AST_DEC_VEC_INT:
+    case AST_DEC_VEC_CHAR:
+    //case AST_DEC_VEC_FLOAT:
+      result = tacCreate(TAC_DEC_VEC, node->symbol, node->son[0]->symbol, 0);
+      break;
+
     default: result = tacJoin(code[0], tacJoin(code[1], tacJoin(code[2], code[3])));
       break;
   }
@@ -412,23 +419,10 @@ void generateASM(TAC *first) {
         "  ret\n"
       );
       break;
-    // FALTA CRIAR NO SEGMENTO DE DADOS
-    // lit string tem "" na hash->text
-    // tem que ver se isso vai dar problema
-
-    // testar como imprimir 'string' em assembly
-    // sepa que eh tri facil hein
 
     case TAC_PRINT_STR:
       fprintf(fout,
         "\n## TAC_PRINT_STR\n"
-      //   "  movl	_%s(%%rip), %%eax\n"
-      //   "  movl	%%eax, %%esi\n"
-      //   "  leaq	print_str(%%rip), %%rdi\n"
-      //   "  movl	$0, %%eax\n"
-      //   "  call	printf@PLT\n"
-      // , strcat(replaceChar(tac->res->text, '"', '.'), "string"));
-      // break;
         "\tleaq	_.str%d(%%rip), %%rax\n"
         "\tmovq	%%rax, %%rsi\n"
         "\tleaq	print_str(%%rip), %%rdi\n"
@@ -571,6 +565,23 @@ void generateASM(TAC *first) {
       break;
 
     case TAC_VEC_COPY:
+      fprintf(fout,
+        "\n## TAC_VEC_COPY\n"
+        "\tmovl\t_%s(%%rip), %%edx\n"
+        "\tmovl\t%%edx, %d+_%s(%%rip)\n"
+      , tac->op1->text, atoi(tac->op1->text)*4, tac->res->text);
+      break;
+
+    case TAC_VEC_ACCESS:
+      fprintf(fout,
+        "\n## TAC_VEC_ACCESS\n"
+        "\tmovl	_%s(%%rip), %%eax\n"
+        "\tcltq\n"
+        "\tleaq	0(,%%rax,4), %%rdx\n"
+        "\tleaq	_%s(%%rip), %%rax\n"
+        "\tmovl	(%%rdx,%%rax), %%eax\n"
+        "\tmovl	%%eax, _%s(%%rip)\n"
+      , tac->op2->text, tac->op1->text, tac->res->text);
       break;
 
     case TAC_LABEL:
@@ -616,12 +627,26 @@ void generateASM(TAC *first) {
     "\t.data\n\n"
    );
 
-  printAsm(fout); // TODO: printar string
+  printAsm(fout);
 
-  for (tac = first; tac; tac = tac->next) // TODO: vetores
-    if (tac->type == TAC_DEC_COPY)
-      fprintf(fout, "_%s:\t.long\t%s\n", tac->res->text, tac->op1->text);
+  for (tac = first; tac; tac = tac->next) { // TODO: vetores
+    switch (tac->type)
+    {
+      case TAC_DEC_COPY:
+        fprintf(fout, "_%s:\t.long\t%s\n", tac->res->text, tac->op1->text);
+        break;
 
+      case TAC_DEC_VEC:
+        fprintf(fout, "_%s:\n", tac->res->text);
+        for (int i=0; i<atoi(tac->op1->text); i++) {
+          fprintf(fout, "\t.long\t%s\n", tac->res->vec_init[i]);
+        }
+        break;
+
+      default: 
+        break;
+    }
+  }
   // Close file
   fclose(fout);
 }

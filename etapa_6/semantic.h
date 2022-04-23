@@ -12,7 +12,7 @@ extern int SEMANTIC_ERRORS;
 
 int is_arithmetic(int type);
 int is_number(AST_NODE *node);
-int count_vector_size(AST_NODE *node);
+int count_vector_size(AST_NODE *node, char *vecIdentifier);
 int count_function_params(AST_NODE *node);
 void check_bool_params(AST_NODE *node);
 void check_and_set_declaration(AST_NODE *node);

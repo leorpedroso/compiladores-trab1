@@ -501,7 +501,7 @@ void check_vector_size(AST_NODE *node) {
     case AST_DEC_VEC_INT:
     case AST_DEC_VEC_CHAR:
     case AST_DEC_VEC_FLOAT:
-      count = count_vector_size(node->son[1]);
+      count = count_vector_size(node->son[1], node->symbol->text);
       if (atoi(node->son[0]->symbol->text) == 0) {
         fprintf(stderr, "SEMANTIC ERROR: vector size cannot be zero\n");
         SEMANTIC_ERRORS++;
@@ -521,12 +521,25 @@ void check_vector_size(AST_NODE *node) {
     check_vector_size(node->son[i]);
 }
 
-int count_vector_size(AST_NODE *node) {
-  if (node == 0)
-    return 0;
-  if (node->son[0] == 0)
-    return 1;
-  return 1+count_vector_size(node->son[0]);
+// int count_vector_size(AST_NODE *node) {
+//   if (node == 0)
+//     return 0;
+//   if (node->son[0] == 0)
+//     return 1;
+//   return 1+count_vector_size(node->son[0]);
+// }
+int count_vector_size(AST_NODE *node, char* vecIdentifier) {
+  int count = 0;
+  HASH_NODE *hashNode = hashFind(vecIdentifier);
+
+  for (node; node != 0; node=node->son[0]) {
+    if (node == 0)
+      break;
+
+    hashNode->vec_init[count] = node->symbol->text;
+    count++;
+  }
+  return count;
 }
 
 void check_function_params(AST_NODE *node) {
