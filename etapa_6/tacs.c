@@ -381,6 +381,8 @@ void generateASM(TAC *first) {
   fout = fopen("out.s", "w");
 
   // Init
+  setStrIdentifiers(); // para criar labels unicos para strings
+
   fprintf(fout, "## FIXED INIT\n"
     "  .section	.rodata\n"
     "  .text\n"
@@ -420,14 +422,22 @@ void generateASM(TAC *first) {
     case TAC_PRINT_STR:
       fprintf(fout,
         "\n## TAC_PRINT_STR\n"
-        "  movl	_%s(%%rip), %%eax\n"
-        "  movl	%%eax, %%esi\n"
-        "  leaq	print_str(%%rip), %%rdi\n"
-        "  movl	$0, %%eax\n"
-        "  call	printf@PLT\n"
-      , tac->res->text);
-      break;
-    
+      //   "  movl	_%s(%%rip), %%eax\n"
+      //   "  movl	%%eax, %%esi\n"
+      //   "  leaq	print_str(%%rip), %%rdi\n"
+      //   "  movl	$0, %%eax\n"
+      //   "  call	printf@PLT\n"
+      // , strcat(replaceChar(tac->res->text, '"', '.'), "string"));
+      // break;
+        "\tleaq	_.str%d(%%rip), %%rax\n"
+        "\tmovq	%%rax, %%rsi\n"
+        "\tleaq	print_str(%%rip), %%rdi\n"
+        "\tmovl	$0, %%eax\n"
+        "\tcall	printf@PLT\n"
+        "\tmovl	$0, %%eax\n"
+        , tac->res->identifier);
+        break;
+
     case TAC_PRINT_INT:
       fprintf(fout,
         "\n## TAC_PRINT_INT\n"
@@ -584,6 +594,16 @@ void generateASM(TAC *first) {
       , tac->op1->text, replaceChar(tac->res->text, '-', '.')); // replaces all '-' with '.'
       break;
 
+    case TAC_READ:
+      fprintf(fout,
+      "\n## TAC_READ\n"
+      "\tleaq	_%s(%%rip), %%rsi\n"
+      "\tleaq	print_int(%%rip), %%rdi\n"
+      "\tmovl	$0, %%eax\n"
+      "\tcall	__isoc99_scanf@PLT\n"
+      , tac->res->text);
+      break;
+
     default:
       break;
     }
@@ -592,8 +612,8 @@ void generateASM(TAC *first) {
   // Definitions
 
   fprintf(fout,
-      "\n## DATA SECTION\n"
-	   "\t.data\n\n"
+    "\n## DATA SECTION\n"
+    "\t.data\n\n"
    );
 
   printAsm(fout); // TODO: printar string

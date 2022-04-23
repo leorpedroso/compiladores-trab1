@@ -3,8 +3,6 @@ int b:2;
 int x:3;
 
 int main () {
-	while (a<3){
-		a = a+1;
-		print a;
-	};
+	print a, "garuda", "\n", "garuda", x;
+	
 }

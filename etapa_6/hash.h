@@ -33,6 +33,7 @@ typedef struct hash_node
   int datatype;
   int param_count;
   int isTemp;
+  int identifier;
   char *scope;
   char *text;
   struct hash_node *next;
@@ -46,6 +47,8 @@ void hashPrint();
 int hashCheckUndeclared();
 HASH_NODE* makeTemp();
 HASH_NODE* makeLabel();
+void setStrIdentifiers();
 void printAsm(FILE *fout);
+char* replaceChar(char* str, char find, char replace);
 
 #endif

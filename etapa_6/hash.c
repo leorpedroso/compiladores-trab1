@@ -115,9 +115,25 @@ HASH_NODE* makeLabel() {
    return node;
 }
 
-void printAsm(FILE *fout) {
+void setStrIdentifiers() {
+   /*
+   *  Seta o campo identifier na hash para cada literal string
+   *  de maneira que cada litstring possui um id diferente.
+   *  Usado para criar identificadores unicos para strings
+   *  no formato _.str[ID] onde [ID] eh o identificador unico.
+   */
+   static int id = 0;
    HASH_NODE* node;
-   struct AST_NODE* astNode;
+
+   for (int i=0; i<HASH_SIZE; i++)
+      for (node=Table[i]; node; node=node->next)
+         if (node->type == SYMBOL_LITSTRING)
+            node->identifier = id++;
+}
+
+void printAsm(FILE *fout) {
+   
+   HASH_NODE* node;
    
    for (int i=0; i<HASH_SIZE; i++)
       for (node=Table[i]; node; node=node->next)
@@ -130,8 +146,11 @@ void printAsm(FILE *fout) {
             
             case SYMBOL_LITINT:
             case SYMBOL_LITCHAR:    // litchar e litstring tem que ignorar '' e ""
-            //case SYMBOL_LITSTRING:
                fprintf(fout, "_%s:\t.long\t%s\n", node->text, node->text);
+               break;
+            
+            case SYMBOL_LITSTRING:
+               fprintf(fout, "_.str%d:\t.string\t%s\n", node->identifier, node->text);
                break;
 
             default:

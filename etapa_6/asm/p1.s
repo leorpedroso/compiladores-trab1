@@ -1,33 +1,28 @@
-## FIXED INIT
-	.section	.rodata
+	.file	"t1.c"
 	.text
-
-	print_int:	.string	"%d"
-	print_str: 	.string "%s"
-
-## TAC_BEGINFUN
+	.globl	a
+	.data
+	.align 4
+	.type	a, @object
+	.size	a, 4
+a:
+	.long	2
+	.section	.rodata
+.LC0:
+	.string	"%d"
+	.text
 	.globl	main
 	.type	main, @function
 main:
 	pushq	%rbp
 	movq	%rsp, %rbp
-
-## TAC_COPY
-	movl	_888(%rip), %eax
-
-## TAC_PRINT
+	
+	movl	a(%rip), %eax
 	movl	%eax, %esi
 	leaq	.LC0(%rip), %rdi
 	movl	$0, %eax
 	call	printf@PLT
-	
-## TAC_ENDFUN
+	movl	$0, %eax
 	popq	%rbp
+
 	ret
-
-## DATA SECTION
-	.data
-
-.LC0:	.string	"%d\n"
-a: .long	6
-_888: .long 888
