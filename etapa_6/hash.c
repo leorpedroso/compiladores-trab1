@@ -140,7 +140,7 @@ void printAsm(FILE *fout) {
          switch (node->type)
          {
             case SYMBOL_VARIABLE:
-               if (node->isTemp)
+               if (node->isTemp || node->isArg)
                   fprintf(fout, "_%s:\t.long\t0\n", node->text);
                break;
             
@@ -156,4 +156,5 @@ void printAsm(FILE *fout) {
             default:
                break;
          }
+         fflush(fout);
 }

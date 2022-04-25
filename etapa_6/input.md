@@ -4,6 +4,10 @@ int x:3;
 
 int main () {
 
-	b = (a[2] - a[1])/a[0];
-	print a[b], "\n", a[2-2], "KKKKKKKK";
+	b = fun(a[b], 2, 3, 4, 5, 6, 7, 8);
+}
+
+int fun (int y, int z, int c, int d, int e, int f, int g, int a) {
+	\\print y, z, c, d, e, f, g, h;
+	print a, g, f, e, d, c, z, y;
 }

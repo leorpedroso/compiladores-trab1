@@ -13,7 +13,7 @@ extern int SEMANTIC_ERRORS;
 int is_arithmetic(int type);
 int is_number(AST_NODE *node);
 int count_vector_size(AST_NODE *node, char *vecIdentifier);
-int count_function_params(AST_NODE *node);
+int count_function_params(AST_NODE *node, char *funcIdentifier, int setParams);
 void check_bool_params(AST_NODE *node);
 void check_and_set_declaration(AST_NODE *node);
 void check_identifier(AST_NODE *node);
@@ -25,6 +25,5 @@ void check_and_set_datatype(AST_NODE *node);
 void check_bool_usage(AST_NODE *node);
 void check_vector_size(AST_NODE *node);
 void check_function_params(AST_NODE *node);
-void check_param_types(AST_NODE *node, char* func);
 
 #endif

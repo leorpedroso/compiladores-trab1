@@ -33,6 +33,7 @@
 #define TAC_VEC_ACCESS 25
 #define TAC_DEC_COPY  26
 #define TAC_DEC_VEC   27
+#define TAC_DEC_VEC_NO_INIT 28
 
 typedef struct tac_node
 {

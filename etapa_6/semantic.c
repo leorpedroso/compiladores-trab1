@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include "semantic.h"
 
+#define NO_SET_PARAMS 0
+#define SET_PARAMS 1
+
 int SEMANTIC_ERRORS = 0;
 
 int is_arithmetic(int type)
@@ -98,9 +101,7 @@ void check_and_set_declaration(AST_NODE *node)
         check_identifier(node);
         node->symbol->type = SYMBOL_FUNCTION;
         node->symbol->datatype = DATATYPE_INT;
-        node->symbol->param_count = count_function_params(node->son[0]);
-        if (node->son[0] != 0) // se funcao tem parametros definidos 
-          check_param_types(node->son[0], node->symbol->text);
+        node->symbol->param_count = count_function_params(node->son[0], node->symbol->text, SET_PARAMS);
       }
       break;
 
@@ -109,7 +110,7 @@ void check_and_set_declaration(AST_NODE *node)
         check_identifier(node);
         node->symbol->type = SYMBOL_FUNCTION;
         node->symbol->datatype = DATATYPE_CHAR;
-        node->symbol->param_count = count_function_params(node->son[0]);
+        node->symbol->param_count = count_function_params(node->son[0], node->symbol->text, SET_PARAMS);
       }
       break;
 
@@ -118,7 +119,34 @@ void check_and_set_declaration(AST_NODE *node)
         check_identifier(node);
         node->symbol->type = SYMBOL_FUNCTION;
         node->symbol->datatype = DATATYPE_FLOAT;
-        node->symbol->param_count = count_function_params(node->son[0]);
+        node->symbol->param_count = count_function_params(node->son[0], node->symbol->text, SET_PARAMS);
+      }
+      break;
+
+    case AST_ARG_INT:
+      if (node->symbol) {
+        check_identifier(node);
+        node->symbol->type = SYMBOL_VARIABLE;
+        node->symbol->datatype = DATATYPE_INT;
+        node->symbol->isArg = 1;
+      }
+      break;
+
+    case AST_ARG_CHAR:
+      if (node->symbol) {
+        check_identifier(node);
+        node->symbol->type = SYMBOL_VARIABLE;
+        node->symbol->datatype = DATATYPE_CHAR;
+        node->symbol->isArg = 1;
+      }
+      break;
+
+    case AST_ARG_FLOAT:
+      if (node->symbol) {
+        check_identifier(node);
+        node->symbol->type = SYMBOL_VARIABLE;
+        node->symbol->datatype = DATATYPE_FLOAT;
+        node->symbol->isArg = 1;
       }
       break;
 
@@ -510,6 +538,8 @@ void check_vector_size(AST_NODE *node) {
         fprintf(stderr, "SEMANTIC ERROR: expected vector init arguments to be %s but given %d\n", node->son[0]->symbol->text, count);
         SEMANTIC_ERRORS++;
       }
+      
+      node->symbol->vec_count = count;
 
       break;
 
@@ -521,13 +551,6 @@ void check_vector_size(AST_NODE *node) {
     check_vector_size(node->son[i]);
 }
 
-// int count_vector_size(AST_NODE *node) {
-//   if (node == 0)
-//     return 0;
-//   if (node->son[0] == 0)
-//     return 1;
-//   return 1+count_vector_size(node->son[0]);
-// }
 int count_vector_size(AST_NODE *node, char* vecIdentifier) {
   int count = 0;
   HASH_NODE *hashNode = hashFind(vecIdentifier);
@@ -551,7 +574,7 @@ void check_function_params(AST_NODE *node) {
   switch (node->type)
   {
     case AST_FUNC_CALL:
-      count = count_function_params(node->son[0]);
+      count = count_function_params(node->son[0], node->symbol->text, NO_SET_PARAMS);
       dec_count = hashFind(node->symbol->text)->param_count;
       if (count != dec_count) {
         fprintf(stderr, "SEMANTIC ERROR: param count for function %s doesn't match - expected %d and got %d\n", node->symbol->text, dec_count, count);
@@ -567,41 +590,16 @@ void check_function_params(AST_NODE *node) {
     check_function_params(node->son[i]);
 }
 
-int count_function_params(AST_NODE *node) {
-  if (node == 0)
-    return 0;
-  return 1 + count_function_params(node->son[1]);
-}
+int count_function_params(AST_NODE *node, char *funcIdentifier, int setParams) {
+  int count = 0;
+  HASH_NODE *hashNode = hashFind(funcIdentifier);
 
-void check_param_types(AST_NODE *node, char* func) {
-  if (node == 0)
-    return;
-  switch (node->son[0]->type)
-  {
-    case AST_ARG_INT:
-      node->son[0]->symbol->type = SYMBOL_VARIABLE;
-      node->son[0]->symbol->datatype = DATATYPE_INT;
-      node->son[0]->symbol->scope = func;
-
+  for (node; node != 0; node=node->son[1]) {
+    if (node == 0)
       break;
-
-    case AST_ARG_CHAR:
-      node->son[0]->symbol->type = SYMBOL_VARIABLE;
-      node->son[0]->symbol->datatype = DATATYPE_CHAR;
-      node->son[0]->symbol->scope = func;
-      
-      break;
-
-    case AST_ARG_FLOAT:
-      node->son[0]->symbol->type = SYMBOL_VARIABLE;
-      node->son[0]->symbol->datatype = DATATYPE_FLOAT;
-      node->son[0]->symbol->scope = func;
-      
-      break;
-    
-    default:
-      break;
+    if (setParams)
+      hashNode->param_names[count] = node->son[0]->symbol->text; //AST_ARGS -> AST_ARG_INT/CHAR/FLOAT
+    count++;
   }
-
-  check_param_types(node->son[1], func);
+  return count;
 }

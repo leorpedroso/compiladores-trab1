@@ -32,12 +32,14 @@ typedef struct hash_node
   int type;
   int datatype;
   int param_count;
+  int vec_count;
   int isTemp;
+  int isArg;
   int identifier;
-  char *scope;
   char *text;
   struct hash_node *next;
-  char *vec_init[20]; // vetor tem tamanho maximo 20
+  char *vec_init[1000];   // vetor tem tamanho maximo 20
+  char *param_names[1000]; // funcao tem no maximo 20 parametros
 } HASH_NODE;
 
 void hashInit();

@@ -362,7 +362,10 @@ TAC* generateCode(AST_NODE *node) {
     case AST_DEC_VEC_INT:
     case AST_DEC_VEC_CHAR:
     //case AST_DEC_VEC_FLOAT:
-      result = tacCreate(TAC_DEC_VEC, node->symbol, node->son[0]->symbol, 0);
+      if (node->symbol->vec_count == 0)
+        result = tacCreate(TAC_DEC_VEC_NO_INIT, node->symbol, node->son[0]->symbol, 0);
+      else 
+        result = tacCreate(TAC_DEC_VEC, node->symbol, node->son[0]->symbol, 0);
       break;
 
     default: result = tacJoin(code[0], tacJoin(code[1], tacJoin(code[2], code[3])));
@@ -410,6 +413,13 @@ void generateASM(TAC *first) {
         "  pushq	%%rbp\n"
         "  movq	%%rsp, %%rbp\n"
       , tac->res->text, tac->res->text, tac->res->text); 
+
+      for (int i = 0; i < tac->res->param_count; i++) { // anota nome dos params na hash 
+        fprintf(fout,
+        "\tmovl	%d(%%rbp), %%edx\n"
+	      "\tmovl	%%edx, _%s(%%rip)\n"
+        , 16+8*i, tac->res->param_names[i]);
+      }
       break;
     
     case TAC_ENDFUN:
@@ -557,12 +567,19 @@ void generateASM(TAC *first) {
       break;
 
     case TAC_COPY:
+      // if (tac->res->type == SYMBOL_FUNCTION) {
+
+      // }
       fprintf(fout,
         "\n## TAC_COPY\n"
-        " movl  _%s(%%rip), %%edx\n"
-        " movl  %%edx, _%s(%%rip)\n"
+        "\tmovl  _%s(%%rip), %%edx\n"
+        "\tmovl  %%edx, _%s(%%rip)\n"
       , tac->op1->text, tac->res->text);
       break;
+
+    // 2 problemas -> TAC_UNKNOWN na variavel matrix
+    // e no tac_vec_copy acho, nao ta printando valor certo
+    // depois tem que ver a questao de float e eras isso
 
     case TAC_VEC_COPY:
       fprintf(fout,
@@ -607,17 +624,39 @@ void generateASM(TAC *first) {
 
     case TAC_READ:
       fprintf(fout,
-      "\n## TAC_READ\n"
-      "\tleaq	_%s(%%rip), %%rsi\n"
-      "\tleaq	print_int(%%rip), %%rdi\n"
-      "\tmovl	$0, %%eax\n"
-      "\tcall	__isoc99_scanf@PLT\n"
+        "\n## TAC_READ\n"
+        "\tleaq	_%s(%%rip), %%rsi\n"
+        "\tleaq	print_int(%%rip), %%rdi\n"
+        "\tmovl	$0, %%eax\n"
+        "\tcall	__isoc99_scanf@PLT\n"
       , tac->res->text);
+      break;
+
+    case TAC_CALL:
+      fprintf(fout,
+        "\n## TAC_CALL\n"
+        "\tcall %s\n"
+        "\taddq $%d, %%rsp\n"
+        "\tmovl %%eax, _%s(%%rip)"
+      , tac->op1->text, 8*(tac->op1->param_count), tac->res->text);
+      break;
+
+    case TAC_ARG:
+      // primeiros param passados por registrador edi, esi, edx, ecx, r8d, r9d
+      fprintf(fout, 
+        "\n## TAC_ARG\n"
+        "\tmovl _%s(%%rip), %%edx\n"
+        "\tpushq %%rdx\n"
+      , tac->res->text);
+      break;
+
+    case TAC_RET: // nao precisou fazer
       break;
 
     default:
       break;
     }
+    fflush(fout); // debug
   }
 
   // Definitions
@@ -626,7 +665,6 @@ void generateASM(TAC *first) {
     "\n## DATA SECTION\n"
     "\t.data\n\n"
    );
-
   printAsm(fout);
 
   for (tac = first; tac; tac = tac->next) { // TODO: vetores
@@ -641,6 +679,10 @@ void generateASM(TAC *first) {
         for (int i=0; i<atoi(tac->op1->text); i++) {
           fprintf(fout, "\t.long\t%s\n", tac->res->vec_init[i]);
         }
+        break;
+
+      case TAC_DEC_VEC_NO_INIT:
+        fprintf(fout, "_%s:\t.zero\n", tac->res->text); 
         break;
 
       default: 
