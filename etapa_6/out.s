@@ -31,7 +31,12 @@ main:
 
 ## TAC_VEC_COPY
 	movl	_a(%rip), %edx
-	movl	%edx, 0+_v(%rip)
+	movl	_55(%rip), %eax
+	movslq	%edx, %rdx
+	leaq	0(,%rdx,4), %rcx
+	leaq	_v(%rip), %rdx
+	movl	%eax, (%rcx,%rdx)
+	movl	$0, %eax
 
 ## TAC_VEC_ACCESS
 	movl	_5(%rip), %eax

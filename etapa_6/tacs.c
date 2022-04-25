@@ -67,6 +67,7 @@ void tacPrint(TAC* tac) {
     case TAC_VEC_ACCESS: fprintf(stderr, "TAC_VEC_ACCESS"); break;
     case TAC_DEC_COPY:  fprintf(stderr, "TAC_DEC_COPY");  break;
     case TAC_DEC_VEC:   fprintf(stderr, "TAC_DEC_VEC");   break;
+    case TAC_DEC_VEC_NO_INIT: fprintf(stderr, "TAC_DEC_VEC_NO_INIT"); break;
     default:            fprintf(stderr, "TAC_UNKNOWN");   break;
   }
 
@@ -577,16 +578,26 @@ void generateASM(TAC *first) {
       , tac->op1->text, tac->res->text);
       break;
 
-    // 2 problemas -> TAC_UNKNOWN na variavel matrix
     // e no tac_vec_copy acho, nao ta printando valor certo
     // depois tem que ver a questao de float e eras isso
 
     case TAC_VEC_COPY:
+      // fprintf(fout,
+      //   "\n## TAC_VEC_COPY\n"
+      //   "\tmovl\t_%s(%%rip), %%edx\n"
+      //   "\tmovl\t%%edx, %d+_%s(%%rip)\n"
+      // , tac->op1->text, atoi(tac->op1->text)*4, tac->res->text);
+      // break;
       fprintf(fout,
         "\n## TAC_VEC_COPY\n"
-        "\tmovl\t_%s(%%rip), %%edx\n"
-        "\tmovl\t%%edx, %d+_%s(%%rip)\n"
-      , tac->op1->text, atoi(tac->op1->text)*4, tac->res->text);
+        "\tmovl	_%s(%%rip), %%edx\n"
+        "\tmovl	_%s(%%rip), %%eax\n"
+        "\tmovslq	%%edx, %%rdx\n"
+        "\tleaq	0(,%%rdx,4), %%rcx\n"
+        "\tleaq	_%s(%%rip), %%rdx\n"
+        "\tmovl	%%eax, (%%rcx,%%rdx)\n"
+        "\tmovl	$0, %%eax\n"
+      , tac->op1->text, tac->op2->text, tac->res->text);
       break;
 
     case TAC_VEC_ACCESS:
@@ -599,6 +610,10 @@ void generateASM(TAC *first) {
         "\tmovl	(%%rdx,%%rax), %%eax\n"
         "\tmovl	%%eax, _%s(%%rip)\n"
       , tac->op2->text, tac->op1->text, tac->res->text);
+
+      //   "\tmovl\t%d+_%s(%%rip), %%eax\n"
+      //   "\tmovl\t%%eax, _%s(%%rip)\n"
+      // , atoi(tac->op2->text)*4, tac->op1->text, tac->res->text);
       break;
 
     case TAC_LABEL:
